@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_with_google_map/models/place_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -34,6 +37,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       children: [
         GoogleMap(
           markers: markers,
+          zoomControlsEnabled: false,
           initialCameraPosition: initialCameraPosition,
           cameraTargetBounds: CameraTargetBounds(LatLngBounds(
             southwest: const LatLng(29.237473316139653, 30.796266668386423),
@@ -64,17 +68,33 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     mapController.setMapStyle(appStyle);
   }
 
-  void initeMarkers() {
+  void initeMarkers() async {
+    var customMarker = BitmapDescriptor.fromBytes(await getImageFromRawData(
+        imagePath: "assets/img/map-marker.png", width: 100));
     var myMarkers = places
         .map(
           (placeMarker) => Marker(
             markerId: MarkerId(placeMarker.id),
             position: placeMarker.latLng,
             infoWindow: InfoWindow(title: placeMarker.name),
+            icon: customMarker,
           ),
         )
         .toSet();
     markers.addAll(myMarkers);
     setState(() {});
+  }
+
+  Future<Uint8List> getImageFromRawData(
+      {required String imagePath, required double width}) async {
+    var imageData = await rootBundle.load(imagePath);
+    var imageCodec = await ui.instantiateImageCodec(
+        imageData.buffer.asUint8List(),
+        targetWidth: width.round());
+    var imageFrame = await imageCodec.getNextFrame();
+    var imageByteData =
+        await imageFrame.image.toByteData(format: ui.ImageByteFormat.png);
+
+    return imageByteData!.buffer.asUint8List();
   }
 }
