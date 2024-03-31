@@ -17,11 +17,13 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   late GoogleMapController mapController;
   Set<Marker> markers = {};
+  Set<Polyline> polylines = {};
   @override
   void initState() {
     initialCameraPosition = const CameraPosition(
         zoom: 14.0, target: LatLng(29.305103116405615, 30.84337813070837));
     initeMarkers();
+    initePolylines();
     super.initState();
   }
 
@@ -36,6 +38,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     return Stack(
       children: [
         GoogleMap(
+          polylines: polylines,
           markers: markers,
           zoomControlsEnabled: false,
           initialCameraPosition: initialCameraPosition,
@@ -96,5 +99,20 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
         await imageFrame.image.toByteData(format: ui.ImageByteFormat.png);
 
     return imageByteData!.buffer.asUint8List();
+  }
+
+  void initePolylines() {
+    Polyline polyline = const Polyline(
+      polylineId: PolylineId("1"),
+      color: Colors.blue,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+      width: 5,
+      points: [
+        LatLng(29.318615183361143, 30.806710427942416),
+        LatLng(29.305103116405615, 30.84337813070837),
+      ],
+    );
+    polylines.add(polyline);
   }
 }
