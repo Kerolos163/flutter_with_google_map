@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_with_google_map/models/place_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -18,12 +17,16 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late GoogleMapController mapController;
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
+  Set<Polygon> polygons = {};
+  Set<Circle> circles = {};
   @override
   void initState() {
     initialCameraPosition = const CameraPosition(
         zoom: 14.0, target: LatLng(29.305103116405615, 30.84337813070837));
     initeMarkers();
     initePolylines();
+    initePolygons();
+    initCircles();
     super.initState();
   }
 
@@ -38,6 +41,8 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     return Stack(
       children: [
         GoogleMap(
+          circles: circles,
+          polygons: polygons,
           polylines: polylines,
           markers: markers,
           zoomControlsEnabled: false,
@@ -114,5 +119,36 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ],
     );
     polylines.add(polyline);
+  }
+
+  void initePolygons() {
+    Polygon polygon = Polygon(
+        strokeWidth: 2,
+        fillColor: Colors.black.withOpacity(.5),
+        polygonId: const PolygonId("1"),
+        points: const [
+          LatLng(29.321693195957774, 30.815363210144206),
+          LatLng(29.32143127523634, 30.862098020019367),
+          LatLng(29.299876637518498, 30.859694760742038),
+          LatLng(29.305303146939195, 30.81373242706316),
+        ],
+        holes: const [
+          [
+            LatLng(29.315107556572592, 30.83210019439702),
+            LatLng(29.310242890895783, 30.846648496093692),
+            LatLng(29.303731360091998, 30.83149937957769),
+          ]
+        ]);
+    polygons.add(polygon);
+  }
+
+  void initCircles() {
+    Circle circle = Circle(
+        circleId: const CircleId("1"),
+        fillColor: Colors.blue.withOpacity(.5),
+        strokeColor: Colors.black.withOpacity(.5),
+        center: const LatLng(29.300117456644816, 30.833421321779685),
+        radius: 1000);
+    circles.add(circle);
   }
 }
