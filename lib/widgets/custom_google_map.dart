@@ -30,7 +30,8 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     // initePolygons();
     // initCircles();
     location = Location();
-    checkandRequestPermission();
+    updateMyLocation();
+
     super.initState();
   }
 
@@ -156,13 +157,40 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     circles.add(circle);
   }
 
-  void checkandRequestPermission() async {
+  Future<void> checkandRequestLocationService() async {
     var isServiceEnabled = await location.serviceEnabled();
     if (!isServiceEnabled) {
       isServiceEnabled = await location.requestService();
       if (!isServiceEnabled) {
         //to do
       }
+    }
+  }
+
+  Future<bool> checkandRequestLocationPermission() async {
+    var isPermissionGranted = await location.hasPermission();
+    if (isPermissionGranted == PermissionStatus.deniedForever) {
+      return false;
+    }
+    if (isPermissionGranted == PermissionStatus.denied) {
+      isPermissionGranted = await location.requestPermission();
+      if (isPermissionGranted != PermissionStatus.granted) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void getLocationData() {
+    location.onLocationChanged.listen((locationData) {});
+  }
+
+  void updateMyLocation() async {
+    await checkandRequestLocationService();
+    var hasPermission = await checkandRequestLocationPermission();
+    if (hasPermission) {
+      getLocationData();
     }
   }
 }
