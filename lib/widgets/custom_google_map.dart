@@ -15,7 +15,7 @@ class CustomGoogleMap extends StatefulWidget {
 
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
-  late GoogleMapController mapController;
+  GoogleMapController? mapController;
   late Location location;
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
@@ -37,7 +37,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
 
   @override
   void dispose() {
-    mapController.dispose();
+    mapController!.dispose();
     super.dispose();
   }
 
@@ -65,7 +65,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
           alignment: Alignment.bottomCenter,
           child: ElevatedButton(
             onPressed: () {
-              mapController.animateCamera(CameraUpdate.newLatLng(
+              mapController!.animateCamera(CameraUpdate.newLatLng(
                   const LatLng(29.318615183361143, 30.806710427942416)));
             },
             child: const Text('change location'),
@@ -78,7 +78,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   void initeMapStyle() async {
     var appStyle = await DefaultAssetBundle.of(context)
         .loadString("assets/map_styles/aubergine.json");
-    mapController.setMapStyle(appStyle);
+    mapController!.setMapStyle(appStyle);
   }
 
   void initeMarkers() async {
@@ -183,7 +183,13 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   }
 
   void getLocationData() {
-    location.onLocationChanged.listen((locationData) {});
+    location.onLocationChanged.listen((locationData) {
+      var cameraPosition = CameraPosition(
+          target: LatLng(locationData.latitude!, locationData.longitude!));
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(cameraPosition),
+      );
+    });
   }
 
   void updateMyLocation() async {
