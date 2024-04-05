@@ -185,10 +185,17 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   void getLocationData() {
     location.onLocationChanged.listen((locationData) {
       var cameraPosition = CameraPosition(
-          target: LatLng(locationData.latitude!, locationData.longitude!));
+          target: LatLng(locationData.latitude!, locationData.longitude!),
+          zoom: 15);
+      var myLocationMarker = Marker(
+          markerId: const MarkerId("myLocationMarker"),
+          position: LatLng(locationData.latitude!, locationData.longitude!));
+      markers.add(myLocationMarker);
+
       mapController?.animateCamera(
         CameraUpdate.newCameraPosition(cameraPosition),
       );
+      setState(() {});
     });
   }
 
