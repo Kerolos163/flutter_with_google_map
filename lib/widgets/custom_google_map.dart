@@ -162,8 +162,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   }
 
   void updateMyLocation() async {
-    bool isLocationServiceEnabled =
-        await locationService.checkandRequestLocationService();
+    await locationService.checkandRequestLocationService();
     bool hasPermission =
         await locationService.checkandRequestLocationPermission();
     if (hasPermission) {
