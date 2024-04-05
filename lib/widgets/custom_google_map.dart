@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_with_google_map/models/place_model.dart';
+import 'package:flutter_with_google_map/utils/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
@@ -16,20 +17,23 @@ class CustomGoogleMap extends StatefulWidget {
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   GoogleMapController? mapController;
+  late LocationService locationService;
   late Location location;
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
   Set<Polygon> polygons = {};
   Set<Circle> circles = {};
+  bool isFirstCall = true;
   @override
   void initState() {
     initialCameraPosition = const CameraPosition(
-        zoom: 14.0, target: LatLng(29.305103116405615, 30.84337813070837));
+        zoom: 15.0, target: LatLng(29.305103116405615, 30.84337813070837));
     // initeMarkers();
     // initePolylines();
     // initePolygons();
     // initCircles();
     location = Location();
+    locationService = LocationService();
     updateMyLocation();
 
     super.initState();
@@ -157,53 +161,43 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     circles.add(circle);
   }
 
-  Future<void> checkandRequestLocationService() async {
-    var isServiceEnabled = await location.serviceEnabled();
-    if (!isServiceEnabled) {
-      isServiceEnabled = await location.requestService();
-      if (!isServiceEnabled) {
-        //to do
-      }
-    }
-  }
-
-  Future<bool> checkandRequestLocationPermission() async {
-    var isPermissionGranted = await location.hasPermission();
-    if (isPermissionGranted == PermissionStatus.deniedForever) {
-      return false;
-    }
-    if (isPermissionGranted == PermissionStatus.denied) {
-      isPermissionGranted = await location.requestPermission();
-      if (isPermissionGranted != PermissionStatus.granted) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  void getLocationData() {
-    location.onLocationChanged.listen((locationData) {
-      var cameraPosition = CameraPosition(
-          target: LatLng(locationData.latitude!, locationData.longitude!),
-          zoom: 15);
-      var myLocationMarker = Marker(
-          markerId: const MarkerId("myLocationMarker"),
-          position: LatLng(locationData.latitude!, locationData.longitude!));
-      markers.add(myLocationMarker);
-
-      mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(cameraPosition),
-      );
-      setState(() {});
-    });
-  }
-
   void updateMyLocation() async {
-    await checkandRequestLocationService();
-    var hasPermission = await checkandRequestLocationPermission();
+    bool isLocationServiceEnabled =
+        await locationService.checkandRequestLocationService();
+    bool hasPermission =
+        await locationService.checkandRequestLocationPermission();
     if (hasPermission) {
-      getLocationData();
+      locationService.getRealTimeLocation(onData: (locationData) {
+        setMarker(locationData);
+        animateCamera(locationData);
+      });
     }
+  }
+
+  void animateCamera(LocationData locationData) {
+    if (!isFirstCall) {
+      mapController?.animateCamera(
+        CameraUpdate.newLatLng(
+            LatLng(locationData.latitude!, locationData.longitude!)),
+      );
+    } else {
+      CameraPosition cameraPosition = CameraPosition(
+          target: LatLng(locationData.latitude!, locationData.longitude!),
+          zoom: 17);
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          cameraPosition,
+        ),
+      );
+      isFirstCall = false;
+    }
+  }
+
+  void setMarker(LocationData locationData) {
+    var myLocationMarker = Marker(
+        markerId: const MarkerId("myLocationMarker"),
+        position: LatLng(locationData.latitude!, locationData.longitude!));
+    markers.add(myLocationMarker);
+    setState(() {});
   }
 }
